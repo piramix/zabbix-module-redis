@@ -21,4 +21,6 @@ value:
     
 key: redis.status[{#RSHOST},{#RSPORT},key]
 
+key: redis.ping[{#RSHOST},{#RSPORT}]
+
 Note: this module only support the digit value, other key will return: ZBX_NOTSUPPORTED: Not supported key

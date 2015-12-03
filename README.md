@@ -32,6 +32,8 @@ Installation
 
 1. import the zabbix template *zbx_template_redis_active.xml*
 
+1. link template *zbx_template_redis_active.xml*
+
 Synopsis
 ========
 
@@ -42,6 +44,8 @@ Synopsis
     {"data":[{"{#RSHOST}":"127.0.0.1","{#RSPORT}":"6379"},{"{#RSHOST}":"192.16.9.9","{#RSPORT}":"6380"},{"{#RSHOST}":"127.0.0.1","{#RSPORT}":"6381"}]}
     
 **key:** *redis.status[{#RSHOST},{#RSPORT},key]*
+
+**key:** *redis.ping[{#RSHOST},{#RSPORT}]*
 
 Note
 ===

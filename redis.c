@@ -238,6 +238,13 @@ int	zbx_module_redis_status(AGENT_REQUEST *request, AGENT_RESULT *result)
 		rs_port = atoi(str_rs_port);
 		key = get_rparam(request, 2);
 	}
+	else if (request->nparam == 2)
+	{
+		rs_host = REDIS_DEFAULT_INSTANCE_HOST;
+		str_rs_port = get_rparam(request, 0);
+		rs_port = atoi(str_rs_port);
+		key = get_rparam(request, 1);
+	}
 	else
 	{
 		/* set optional error message */
@@ -320,6 +327,12 @@ int	zbx_module_redis_ping(AGENT_REQUEST *request, AGENT_RESULT *result)
 	const char      *buf;
 	char		*rv;
 	int		rs_status = 0;
+	time_t		now;
+	char		str_time[MAX_STRING_LEN];
+	char		cmd[MAX_STRING_LEN];
+	char		hv[MAX_STRING_LEN];
+	struct tm	*tm = NULL;
+
 
 	if (request->nparam == 2)
 	{
@@ -338,13 +351,24 @@ int	zbx_module_redis_ping(AGENT_REQUEST *request, AGENT_RESULT *result)
 	zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_ping], args:[%s,%d]", rs_host, rs_port);
 	*/
 
+	time(&now);
+	tm = localtime(&now);
+	strftime(str_time, MAX_STRING_LEN, "%Y%m%d%H%M%S", tm);
+	/* for dev
+	zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_ping], str_time:[%s]", str_time);
+	*/
+
+	zbx_snprintf(cmd, MAX_STRING_LEN, "set ZBX_PING %s\r\nget ZBX_PING\r\nquit\r\n",str_time);
+	zbx_snprintf(hv, MAX_STRING_LEN, "+OK$%d%s+OK", strlen(str_time), str_time);
+
+
 	if (SUCCEED == zbx_tcp_connect(&s, CONFIG_SOURCE_IP, rs_host, rs_port, 0))
 	{
 		/* for dev
 		zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_ping], connect to [%s:%d] successful", rs_host, rs_port);
 		*/
 
-		if (SUCCEED == zbx_tcp_send_raw(&s, "set ZBX_PING PONG\r\nget ZBX_PING\r\nquit\r\n"))
+		if (SUCCEED == zbx_tcp_send_raw(&s, cmd))
 		{
 			/* for dev
 			zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_ping], send request successful");
@@ -362,7 +386,7 @@ int	zbx_module_redis_ping(AGENT_REQUEST *request, AGENT_RESULT *result)
 			/* for dev
 			zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_ping], all get [%s]", rv);
 			*/
-			if (0 == strcmp(rv, "+OK$4PONG+OK"))
+			if (0 == strcmp(rv, hv))
 			{
 				/* for dev
 				zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_ping], redis instance:[%s:%d] is up", rs_host, rs_port);
