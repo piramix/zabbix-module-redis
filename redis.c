@@ -228,7 +228,7 @@ int	zbx_module_redis_status(AGENT_REQUEST *request, AGENT_RESULT *result)
 	char		*tmp;
 	char		*p;
 	int		ret = SYSINFO_RET_FAIL;
-	int		find;
+	int		find = 0;
 	int		net_error = 0;
 
 	if (request->nparam == 3)
@@ -325,7 +325,7 @@ int	zbx_module_redis_ping(AGENT_REQUEST *request, AGENT_RESULT *result)
 	char		*rs_host, *str_rs_port;
 	unsigned int    rs_port;
 	const char      *buf;
-	char		*rv;
+	char		rv[MAX_STRING_LEN];
 	int		rs_status = 0;
 	time_t		now;
 	char		str_time[MAX_STRING_LEN];
@@ -374,7 +374,7 @@ int	zbx_module_redis_ping(AGENT_REQUEST *request, AGENT_RESULT *result)
 			zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_ping], send request successful");
 			*/
 
-			rv = zbx_strdup(NULL, "");
+			strscpy(rv, "");
 
 			while (NULL != (buf = zbx_tcp_recv_line(&s)))
 			{
@@ -394,8 +394,6 @@ int	zbx_module_redis_ping(AGENT_REQUEST *request, AGENT_RESULT *result)
 				rs_status = 1;
 			}
 		}
-
-		free(rv);
 
 		zbx_tcp_close(&s);
 	}
