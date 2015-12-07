@@ -36,9 +36,9 @@ static int	item_timeout = 0;
 /* the path of config file */
 const char	ZBX_MODULE_REDIS_CONFIG_FILE[] = "/etc/zabbix/zbx_module_redis.conf";
 
-char	*CONFIG_REDIS_INSTANCE_PORT = NULL;
-char	*REDIS_DEFAULT_INSTANCE_HOST = "127.0.0.1";
-char	*REDIS_DEFAULT_INSTANCE_PORT = "6379";
+char		*CONFIG_REDIS_INSTANCE_PORT = NULL;
+
+static char	*REDIS_DEFAULT_INSTANCE_HOST = "127.0.0.1";
 
 #define ZBX_CFG_LTRIM_CHARS     "\t "
 #define ZBX_CFG_RTRIM_CHARS     ZBX_CFG_LTRIM_CHARS "\r\n"
@@ -338,6 +338,12 @@ int	zbx_module_redis_ping(AGENT_REQUEST *request, AGENT_RESULT *result)
 	{
 		rs_host = get_rparam(request, 0);
 		str_rs_port = get_rparam(request, 1);
+		rs_port = atoi(str_rs_port);
+	}
+	else if (request->nparam == 1)
+	{
+		rs_host = REDIS_DEFAULT_INSTANCE_HOST;
+		str_rs_port = get_rparam(request, 0);
 		rs_port = atoi(str_rs_port);
 	}
 	else
