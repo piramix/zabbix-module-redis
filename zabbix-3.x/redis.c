@@ -18,7 +18,7 @@
 **
 ** Author: Cao Qingshan <caoqingshan@kingsoft.com>
 **
-** Version: 1.1 Last update: 2015-12-01 15:00
+** Version: 3.0 Last update: 2016-03-18 15:00
 **
 **/
 
@@ -126,7 +126,7 @@ int zbx_module_redis_load_config(int requirement)
 
 	if (ZBX_CFG_FILE_REQUIRED == requirement && NULL == CONFIG_REDIS_INSTANCE_PORT)
 	{
-		zabbix_log(LOG_LEVEL_WARNING, "Parameter redis_inst_ports must be defined, example: 6379 ,6380");
+		zabbix_log(LOG_LEVEL_WARNING, "Parameter redis_inst_ports must be defined, example: 6379, 192.168.9.9:6380, 6381");
 		return ret;
 	}
 	else
@@ -219,7 +219,7 @@ int zbx_module_redis_discovery(AGENT_REQUEST *request, AGENT_RESULT *result)
 int	zbx_module_redis_status(AGENT_REQUEST *request, AGENT_RESULT *result)
 {
 	char		*CONFIG_SOURCE_IP = NULL;	
-	zbx_sock_t	s;
+	zbx_socket_t	s;
 	char		*rs_host, *str_rs_port, *key;
 	unsigned int    rs_port;
 	char		rs_st_name[MAX_STRING_LEN];
@@ -256,7 +256,7 @@ int	zbx_module_redis_status(AGENT_REQUEST *request, AGENT_RESULT *result)
 	zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_status], args:[%s,%d]", rs_host, rs_port);
 	*/
 
-	if (SUCCEED == zbx_tcp_connect(&s, CONFIG_SOURCE_IP, rs_host, rs_port, 0))
+	if (SUCCEED == zbx_tcp_connect(&s, CONFIG_SOURCE_IP, rs_host, rs_port, 0, ZBX_TCP_SEC_UNENCRYPTED, NULL, NULL))
 	{
 		/* for dev
 		zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_status], connect to [%s:%d] successful", rs_host, rs_port);
@@ -296,8 +296,8 @@ int	zbx_module_redis_status(AGENT_REQUEST *request, AGENT_RESULT *result)
 		else
 		{
 			net_error = 1;
-			zabbix_log(LOG_LEVEL_WARNING, "module [redis], func [zbx_module_redis_status],get redis status error: [%s]", zbx_tcp_strerror());
-			SET_MSG_RESULT(result, zbx_dsprintf(NULL, "Get redis status error [%s]", zbx_tcp_strerror()));
+			zabbix_log(LOG_LEVEL_WARNING, "module [redis], func [zbx_module_redis_status],get redis status error: [%s]", zbx_socket_strerror());
+			SET_MSG_RESULT(result, zbx_dsprintf(NULL, "Get redis status error [%s]", zbx_socket_strerror()));
 		}
 
 		zbx_tcp_close(&s);
@@ -305,8 +305,8 @@ int	zbx_module_redis_status(AGENT_REQUEST *request, AGENT_RESULT *result)
 	else
 	{
 		net_error = 1;
-		zabbix_log(LOG_LEVEL_WARNING, "module [redis], func [zbx_module_redis_status], connect to redis error: [%s]", zbx_tcp_strerror());
-		SET_MSG_RESULT(result, zbx_dsprintf(NULL, "Connect to redis error [%s]", zbx_tcp_strerror()));
+		zabbix_log(LOG_LEVEL_WARNING, "module [redis], func [zbx_module_redis_status], connect to redis error: [%s]", zbx_socket_strerror());
+		SET_MSG_RESULT(result, zbx_dsprintf(NULL, "Connect to redis error [%s]", zbx_socket_strerror()));
 	}
 
 	if (find != 1 && net_error == 0)
@@ -321,7 +321,7 @@ int	zbx_module_redis_status(AGENT_REQUEST *request, AGENT_RESULT *result)
 int	zbx_module_redis_ping(AGENT_REQUEST *request, AGENT_RESULT *result)
 {
 	char		*CONFIG_SOURCE_IP = NULL;	
-	zbx_sock_t	s;
+	zbx_socket_t	s;
 	char		*rs_host, *str_rs_port;
 	unsigned int    rs_port;
 	const char      *buf;
@@ -368,7 +368,7 @@ int	zbx_module_redis_ping(AGENT_REQUEST *request, AGENT_RESULT *result)
 	zbx_snprintf(hv, MAX_STRING_LEN, "+OK$%d%s+OK", strlen(str_time), str_time);
 
 
-	if (SUCCEED == zbx_tcp_connect(&s, CONFIG_SOURCE_IP, rs_host, rs_port, 0))
+	if (SUCCEED == zbx_tcp_connect(&s, CONFIG_SOURCE_IP, rs_host, rs_port, 0, ZBX_TCP_SEC_UNENCRYPTED, NULL, NULL))
 	{
 		/* for dev
 		zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_ping], connect to [%s:%d] successful", rs_host, rs_port);

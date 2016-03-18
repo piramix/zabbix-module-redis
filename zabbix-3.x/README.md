@@ -6,7 +6,7 @@ This directory contains a sample module, which extends functionality of Zabbix A
 Status
 ======
 
-This module is testing.
+This module is testing and for zabbix version 2.x.
 
 Installation
 ============
@@ -14,8 +14,6 @@ Installation
 ```bash
 
 	$ git clone https://github.com/cnshawncao/zabbix-module-redis.git
-	$ cp -r zabbix-module-redis/zabbix-2.x zabbix-2.x.x/src/modules/redis	# zabbix-2.x.x is zabbix version
-	  or
 	$ cp -r zabbix-module-redis/zabbix-3.x zabbix-3.x.x/src/modules/redis	# zabbix-3.x.x is zabbix version
 ```
 
