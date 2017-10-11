@@ -20,7 +20,7 @@
 ** Modified by: Marek Rudolf <piramix@piramix.pl>
 **     -- added support to get any key from redis
 **
-** Version: 3.0 Last update: 2016-03-18 15:00
+** Version: 3.1 Last update: 2017-10-11 21:00
 **
 **/
 
