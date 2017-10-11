@@ -482,10 +482,14 @@ int     zbx_module_redis_get(AGENT_REQUEST *request, AGENT_RESULT *result)
                         //zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_get], send request successful");
                         while (NULL != (buf = zbx_tcp_recv_line(&s)))
                         {
+				/* for dev
                                 zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_get], got [%s]", buf);
+				*/
                                 if (valuestart){
                                     if (1 == sscanf(buf, "%s", rsv_str)){
+					/* for dev
                                         zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_get], str [%s]", rsv_str);
+					*/
                                         find = 1;
                                         SET_STR_RESULT(result, zbx_strdup(NULL,rsv_str));
                                         ret = SYSINFO_RET_OK;
@@ -493,7 +497,9 @@ int     zbx_module_redis_get(AGENT_REQUEST *request, AGENT_RESULT *result)
                                     }
                                 }else
                                 if (1 == sscanf(buf, "$%d", &rsv_len)){
+					/* for dev
                                         zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_get], length [%d]", rsv_len);
+					*/
                                         if(rsv_len==-1){
                                             find=0;
                                             break;
@@ -505,7 +511,7 @@ int     zbx_module_redis_get(AGENT_REQUEST *request, AGENT_RESULT *result)
                 else
                 {
                         net_error = 1;
-                        zabbix_log(LOG_LEVEL_WARNING, "module [redis], func [zbx_module_redis_get],get redis status error: [%s]", zbx_socket_strerror());
+                        zabbix_log(LOG_LEVEL_WARNING, "module [redis], func [zbx_module_redis_get],get redis error: [%s]", zbx_socket_strerror());
                         SET_MSG_RESULT(result, zbx_dsprintf(NULL, "Get redis status error [%s]", zbx_socket_strerror()));
                 }
                 zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_get], closing tcp connection");
@@ -514,8 +520,8 @@ int     zbx_module_redis_get(AGENT_REQUEST *request, AGENT_RESULT *result)
         else
         {
                 net_error = 1;
-                zabbix_log(LOG_LEVEL_WARNING, "module [redis], func [zbx_module_redis_get], get redis status error: [%s]", zbx_socket_strerror());
-                SET_MSG_RESULT(result, zbx_dsprintf(NULL, "Get redis status error [%s]", zbx_socket_strerror()));
+                zabbix_log(LOG_LEVEL_WARNING, "module [redis], func [zbx_module_redis_get], get redis error: [%s]", zbx_socket_strerror());
+                SET_MSG_RESULT(result, zbx_dsprintf(NULL, "Get redis error [%s]", zbx_socket_strerror()));
         }
 
         if (find != 1 && net_error == 0)
