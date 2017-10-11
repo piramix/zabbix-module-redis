@@ -48,6 +48,8 @@ Synopsis
 
 **key:** *redis.ping[{#RSHOST},{#RSPORT}]*
 
+**key:** *redis.get[{#RSHOST},{#RSPORT},key]
+
 Note
 ===
 
