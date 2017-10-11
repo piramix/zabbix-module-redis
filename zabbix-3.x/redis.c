@@ -17,6 +17,8 @@
 ** Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 **
 ** Author: Cao Qingshan <caoqingshan@kingsoft.com>
+** Modified by: Marek Rudolf <piramix@piramix.pl>
+**     -- added support to get any key from redis
 **
 ** Version: 3.0 Last update: 2016-03-18 15:00
 **
@@ -55,6 +57,7 @@ static ZBX_METRIC keys[] =
 	{"redis.discovery",	0,			zbx_module_redis_discovery,	NULL},
 	{"redis.status",	CF_HAVEPARAMS,		zbx_module_redis_status,	NULL},
 	{"redis.ping",		CF_HAVEPARAMS,		zbx_module_redis_ping,		NULL},
+	{"redis.get",		CF_HAVEPARAMS,		zbx_module_redis_get,		NULL},
 	{NULL}
 };
 
