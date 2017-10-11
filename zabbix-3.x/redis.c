@@ -47,6 +47,7 @@ int	zbx_module_redis_load_config(int requirement);
 int	zbx_module_redis_ping(AGENT_REQUEST *request, AGENT_RESULT *result);
 int	zbx_module_redis_discovery(AGENT_REQUEST *request, AGENT_RESULT *result);
 int	zbx_module_redis_status(AGENT_REQUEST *request, AGENT_RESULT *result);
+int     zbx_module_redis_get(AGENT_REQUEST *request, AGENT_RESULT *result);
 
 static ZBX_METRIC keys[] =
 /*      KEY                     FLAG		        FUNCTION        	        TEST PARAMETERS */
@@ -414,6 +415,118 @@ int	zbx_module_redis_ping(AGENT_REQUEST *request, AGENT_RESULT *result)
 	}
 
 	return SYSINFO_RET_OK;
+}
+
+
+int     zbx_module_redis_get(AGENT_REQUEST *request, AGENT_RESULT *result)
+{
+        char            *CONFIG_SOURCE_IP = NULL;
+        zbx_socket_t    s;
+        char            *rs_host, *str_rs_port, *key;
+        unsigned int    rs_port;
+        char            rs_st_name[MAX_STRING_LEN];
+        zbx_uint64_t    rs_st_value;
+        const char      *buf;
+        char            *tmp;
+        char            *p;
+        int             ret = SYSINFO_RET_FAIL;
+        int             find = 0;
+        int             valuestart = 0;
+        int             net_error = 0;
+        zbx_uint64_t    rsv_int;
+        int             rsv_len;
+//      char            rsv_key[MAX_STRING_LEN];
+        char            rsv_str[MAX_STRING_LEN];
+        char            *memquery = NULL;
+        size_t          memquery_alloc = 256, memquery_offset = 0;
+
+        if (request->nparam == 3)
+        {
+                rs_host = get_rparam(request, 0);
+                str_rs_port = get_rparam(request, 1);
+                rs_port = atoi(str_rs_port);
+                key = get_rparam(request, 2);
+        }
+        else if (request->nparam == 2)
+        {
+                rs_host = REDIS_DEFAULT_INSTANCE_HOST;
+                str_rs_port = get_rparam(request, 0);
+                rs_port = atoi(str_rs_port);
+                key = get_rparam(request, 1);
+        }
+        else
+        {
+                /* set optional error message */
+                SET_MSG_RESULT(result, zbx_strdup(NULL, "Invalid number of parameters"));
+                return SYSINFO_RET_FAIL;
+        }
+
+
+        /* for dev
+        zabbix_log(LOG_LEVEL_INFORMATION, "module [memcached], func [zbx_module_memcached_status], args:[%s,%d]", rs_host, rs_port);
+        */
+
+        memquery = zbx_malloc(memquery, memquery_alloc);
+        zbx_snprintf_alloc(&memquery, &memquery_alloc, &memquery_offset,
+                        "get %s\r\n",
+                        key);
+        if (SUCCEED == zbx_tcp_connect(&s, CONFIG_SOURCE_IP, rs_host, rs_port, 0, ZBX_TCP_SEC_UNENCRYPTED, NULL, NULL))
+        {
+                /* for dev
+                zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_memcached_status], connect to [%s:%d] successful", rs_host, rs_port);
+                */
+
+                if (SUCCEED == zbx_tcp_send_raw(&s, memquery))
+                {
+                        /* for dev */
+                        //zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_get], send request successful");
+                        while (NULL != (buf = zbx_tcp_recv_line(&s)))
+                        {
+                                zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_get], got [%s]", buf);
+                                if (valuestart){
+                                    if (1 == sscanf(buf, "%s", rsv_str)){
+                                        zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_get], str [%s]", rsv_str);
+                                        find = 1;
+                                        SET_STR_RESULT(result, zbx_strdup(NULL,rsv_str));
+                                        ret = SYSINFO_RET_OK;
+                                        break;
+                                    }
+                                }else
+                                if (1 == sscanf(buf, "$%d", &rsv_len)){
+                                        zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_get], length [%d]", rsv_len);
+                                        if(rsv_len==-1){
+                                            find=0;
+                                            break;
+                                        }else
+                                        valuestart = 1;
+                                }
+                        }
+                }
+                else
+                {
+                        net_error = 1;
+                        zabbix_log(LOG_LEVEL_WARNING, "module [redis], func [zbx_module_redis_get],get redis status error: [%s]", zbx_socket_strerror());
+                        SET_MSG_RESULT(result, zbx_dsprintf(NULL, "Get redis status error [%s]", zbx_socket_strerror()));
+                }
+                zabbix_log(LOG_LEVEL_INFORMATION, "module [redis], func [zbx_module_redis_get], closing tcp connection");
+                zbx_tcp_close(&s);
+        }
+        else
+        {
+                net_error = 1;
+                zabbix_log(LOG_LEVEL_WARNING, "module [redis], func [zbx_module_redis_get], get redis status error: [%s]", zbx_socket_strerror());
+                SET_MSG_RESULT(result, zbx_dsprintf(NULL, "Get redis status error [%s]", zbx_socket_strerror()));
+        }
+
+        if (find != 1 && net_error == 0)
+        {
+                zabbix_log(LOG_LEVEL_WARNING, "module [redis], func [zbx_module_redis_get], can't find key: [%s]", key);
+                SET_MSG_RESULT(result, zbx_dsprintf(NULL, "Not supported key [%s]", key));
+        }
+
+
+        zbx_free(memquery);
+        return ret;
 }
 
 /******************************************************************************
